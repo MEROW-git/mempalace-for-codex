@@ -221,17 +221,25 @@ def _require_git() -> None:
         pytest.skip("git executable not available")
 
 
-def _git_commit(
-    path: Path, filename: str, content: str, message: str, name: str, email: str
-) -> None:
-    _require_git()
+def _git_test_env(name: str, email: str) -> dict[str, str]:
     env = {
-        **os.environ,
         "GIT_AUTHOR_NAME": name,
         "GIT_AUTHOR_EMAIL": email,
         "GIT_COMMITTER_NAME": name,
         "GIT_COMMITTER_EMAIL": email,
     }
+    for key in ("PATH", "HOME", "SystemRoot", "ComSpec", "TMPDIR", "TEMP", "TMP"):
+        value = os.environ.get(key)
+        if value:
+            env[key] = value
+    return env
+
+
+def _git_commit(
+    path: Path, filename: str, content: str, message: str, name: str, email: str
+) -> None:
+    _require_git()
+    env = _git_test_env(name, email)
     (path / filename).write_text(content)
     subprocess.run(["git", "add", filename], cwd=path, check=True, env=env)
     subprocess.run(["git", "commit", "-q", "-m", message], cwd=path, check=True, env=env)

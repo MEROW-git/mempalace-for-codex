@@ -296,10 +296,7 @@ def _looks_like_real_name(name: str) -> bool:
 def _walk(root: Path, max_depth: int = MAX_DEPTH):
     for dirpath, dirs, files in os.walk(root):
         dirs[:] = [d for d in dirs if d not in SKIP_DIRS and not d.startswith(".")]
-        try:
-            rel = Path(dirpath).relative_to(root)
-        except ValueError:
-            continue
+        rel = Path(dirpath).relative_to(root)
         depth = 0 if rel == Path(".") else len(rel.parts)
         if depth > max_depth:
             dirs.clear()
